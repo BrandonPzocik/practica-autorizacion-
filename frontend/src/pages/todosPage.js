@@ -10,8 +10,8 @@ export const todosPage = () => {
     "bg-gray-200"
   );
 
+  // Botón de Inicio
   const btnHome = document.createElement("button");
-
   btnHome.classList.add(
     "bg-blue-500",
     "text-white",
@@ -20,20 +20,18 @@ export const todosPage = () => {
     "hover:bg-blue-600",
     "mb-4"
   );
-
   btnHome.textContent = "Home";
-
   btnHome.addEventListener("click", () => {
     window.location.pathname = "/home";
   });
 
+  // Título
   const title = document.createElement("h1");
-
   title.classList.add("text-3xl", "font-bold", "mb-4");
-  title.textContent = "List of Todos";
+  title.textContent = "Lista de Tareas";
 
+  // Tabla
   const table = document.createElement("table");
-
   table.classList.add(
     "w-1/2",
     "bg-white",
@@ -47,19 +45,15 @@ export const todosPage = () => {
   const th1 = document.createElement("th");
   th1.classList.add("border", "px-4", "py-2");
   th1.textContent = "ID";
-
   const th2 = document.createElement("th");
   th2.classList.add("border", "px-4", "py-2");
-  th2.textContent = "Title";
-
+  th2.textContent = "Título";
   const th3 = document.createElement("th");
   th3.classList.add("border", "px-4", "py-2");
-  th3.textContent = "Completed";
-
+  th3.textContent = "Completada";
   const th4 = document.createElement("th");
   th4.classList.add("border", "px-4", "py-2");
-  th4.textContent = "Owner Id";
-
+  th4.textContent = "ID del Propietario";
   const th5 = document.createElement("th");
   th5.classList.add("border", "px-4", "py-2");
   th5.textContent = "Acciones";
@@ -73,159 +67,341 @@ export const todosPage = () => {
   thead.appendChild(tr);
 
   const tbody = document.createElement("tbody");
-
   tbody.classList.add("text-center");
   table.appendChild(thead);
   table.appendChild(tbody);
 
   container.appendChild(btnHome);
-  fetch("http://localhost:4000/todos", {
-    credentials: "include",
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      data.todos.forEach((todo) => {
-        if (todo.id > 10) return;
-
-        const tr = document.createElement("tr");
-
-        const td1 = document.createElement("td");
-        td1.classList.add("border", "px-4", "py-2");
-        td1.textContent = todo.id;
-
-        const td2 = document.createElement("td");
-        td2.classList.add("border", "px-4", "py-2");
-        td2.textContent = todo.title;
-
-        const td3 = document.createElement("td");
-        td3.classList.add("border", "px-4", "py-2");
-        td3.textContent = todo.completed ? "Sí" : "No";
-
-        const td4 = document.createElement("td");
-        td4.classList.add("border", "px-4", "py-2");
-        td4.textContent = todo.owner;
-
-        const td5 = document.createElement("td");
-        td5.classList.add("border", "px-4", "py-2");
-
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Eliminar";
-        deleteButton.classList.add(
-          "bg-red-500",
-          "text-white",
-          "px-2",
-          "py-1",
-          "rounded"
-        );
-        const editButton = document.createElement("button");
-        editButton.textContent = "Editar";
-        editButton.classList.add(
-          "bg-blue-500",
-          "text-white",
-          "px-2",
-          "py-1",
-          "rounded",
-          "mr-2"
-        );
-
-        // Modal HTML
-        const modal = document.createElement("div");
-        modal.classList.add(
-          "fixed",
-          "top-0",
-          "left-0",
-          "w-full",
-          "h-full",
-          "flex",
-          "items-center",
-          "justify-center",
-          "bg-gray-800",
-          "bg-opacity-50",
-          "hidden"
-        );
-        const modalContent = document.createElement("div");
-        modalContent.classList.add("bg-white", "p-4", "rounded", "w-1/3");
-        modalContent.innerHTML = `
-          <h2 class="text-xl font-bold mb-2">Edit Todo</h2>
-          <input id="modal-title" class="border p-2 w-full mb-2" placeholder="Title" value="${
-            todo.title
-          }">
-          <input id="modal-completed" type="checkbox" ${
-            todo.completed ? "checked" : ""
-          }> Completed
-          <div class="flex justify-end mt-2">
-            <button id="modal-save" class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
-            <button id="modal-close" class="bg-gray-500 text-white px-4 py-2 rounded ml-2">Cancel</button>
-          </div>
-        `;
-        modal.appendChild(modalContent);
-        document.body.appendChild(modal);
-
-        editButton.addEventListener("click", () => {
-          modal.classList.remove("hidden");
-
-          const saveButton = document.getElementById("modal-save");
-          const closeButton = document.getElementById("modal-close");
-
-          saveButton.addEventListener("click", () => {
-            const title = document.getElementById("modal-title").value;
-            const completed =
-              document.getElementById("modal-completed").checked;
-
-            fetch(`http://localhost:4000/todos/${todo.id}`, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify({
-                title,
-                completed,
-                owner: todo.owner,
-              }),
-            }).then(() => {
-              window.location.reload();
-            });
-          });
-
-          closeButton.addEventListener("click", () => {
-            modal.classList.add("hidden");
-          });
-        });
-
-        deleteButton.addEventListener("click", async () => {
-          try {
-            const response = await fetch(
-              `http://localhost:4000/todos/${todo.id}`,
-              {
-                method: "DELETE",
-                credentials: "include",
-              }
-            );
-
-            if (response.ok) {
-              tr.remove();
-            } else {
-              console.error("Error al eliminar la tarea.");
-            }
-          } catch (error) {
-            console.error("Hubo un error al conectarse al servidor:", error);
-          }
-        });
-
-        td5.appendChild(deleteButton);
-        td5.appendChild(editButton);
-        tr.appendChild(td1);
-        tr.appendChild(td2);
-        tr.appendChild(td3);
-        tr.appendChild(td4);
-        tr.appendChild(td5);
-        tbody.appendChild(tr);
-      });
-    });
-
   container.appendChild(title);
   container.appendChild(table);
+
+  // Botón para mostrar el formulario de creación
+  const btnCreate = document.createElement("button");
+  btnCreate.classList.add(
+    "bg-green-500",
+    "text-white",
+    "p-2",
+    "rounded",
+    "hover:bg-green-600",
+    "mb-4"
+  );
+  btnCreate.textContent = "Crear Tarea";
+
+  // Formulario de creación y edición de tarea
+  const taskForm = document.createElement("form");
+  taskForm.classList.add("mb-4", "hidden");
+
+  const titleInput = document.createElement("input");
+  titleInput.type = "text";
+  titleInput.placeholder = "Título de la tarea";
+  titleInput.classList.add("border", "p-2", "mb-2", "w-full");
+
+  const completedInput = document.createElement("input");
+  completedInput.type = "checkbox";
+  completedInput.classList.add("mb-2");
+
+  const completedLabel = document.createElement("label");
+  completedLabel.textContent = "¿Completada?";
+  completedLabel.classList.add("ml-2");
+
+  const submitButton = document.createElement("button");
+  submitButton.type = "submit";
+  submitButton.classList.add(
+    "bg-blue-500",
+    "text-white",
+    "p-2",
+    "rounded",
+    "hover:bg-blue-600"
+  );
+  submitButton.textContent = "Agregar Tarea";
+
+  taskForm.appendChild(titleInput);
+  taskForm.appendChild(completedInput);
+  taskForm.appendChild(completedLabel);
+  taskForm.appendChild(submitButton);
+
+  container.appendChild(btnCreate);
+  container.appendChild(taskForm);
+
+  // Variable para almacenar el ID de la tarea a editar
+  let editingTaskId = null;
+
+  // Mostrar el formulario al hacer clic en el botón "Crear Tarea"
+  btnCreate.addEventListener("click", () => {
+    editingTaskId = null;
+    titleInput.value = "";
+    completedInput.checked = false;
+    submitButton.textContent = "Agregar Tarea";
+    taskForm.classList.remove("hidden");
+  });
+
+  // Enviar el formulario al backend
+  taskForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const title = titleInput.value;
+    const completed = completedInput.checked;
+
+    if (editingTaskId) {
+      // Actualizar tarea existente
+      fetch(`http://localhost:4000/todos/${editingTaskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ title, completed }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const row = document.querySelector(`tr[data-id="${editingTaskId}"]`);
+
+          if (row) {
+            const tdTitle = row.querySelector("td:nth-child(2)");
+            const tdCompleted = row.querySelector("td:nth-child(3)");
+
+            // Actualiza los valores
+            tdTitle.textContent = data.todo.title;
+            tdCompleted.textContent = data.todo.completed ? "Sí" : "No";
+
+            // Limpiar el formulario
+            titleInput.value = "";
+            completedInput.checked = false;
+
+            // Ocultar el formulario
+            taskForm.classList.add("hidden");
+
+            alert("Tarea actualizada con éxito");
+          }
+        })
+        .catch((error) => {
+          console.error("Error al actualizar la tarea:", error);
+          alert("Error al actualizar la tarea");
+        });
+    } else {
+      // Crear nueva tarea
+      fetch("http://localhost:4000/todos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ title, completed }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.todo) {
+            // Agregar la nueva tarea a la tabla sin recargar la página
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-id", data.todo.id);
+
+            const td1 = document.createElement("td");
+            td1.classList.add("border", "px-4", "py-2");
+            td1.textContent = data.todo.id;
+
+            const td2 = document.createElement("td");
+            td2.classList.add("border", "px-4", "py-2");
+            td2.textContent = data.todo.title;
+
+            const td3 = document.createElement("td");
+            td3.classList.add("border", "px-4", "py-2");
+            td3.textContent = data.todo.completed ? "Sí" : "No";
+
+            const td4 = document.createElement("td");
+            td4.classList.add("border", "px-4", "py-2");
+            td4.textContent = data.todo.owner;
+
+            const td5 = document.createElement("td");
+            td5.classList.add("border", "px-4", "py-2");
+
+            // Botón de eliminar
+            const btnDelete = document.createElement("button");
+            btnDelete.classList.add(
+              "bg-red-500",
+              "text-white",
+              "p-2",
+              "rounded",
+              "hover:bg-red-600"
+            );
+            btnDelete.textContent = "Eliminar";
+
+            btnDelete.addEventListener("click", () => {
+              fetch(`http://localhost:4000/todos/${data.todo.id}`, {
+                method: "DELETE",
+                credentials: "include",
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.message === "Tarea eliminada con éxito") {
+                    tr.remove(); // Eliminar la fila de la tabla
+                    alert("Tarea eliminada con éxito");
+                  } else {
+                    alert("Error al eliminar la tarea");
+                  }
+                })
+                .catch((error) => {
+                  console.error("Error al eliminar la tarea:", error);
+                  alert("Error al eliminar la tarea");
+                });
+            });
+
+            // Botón de editar
+            const btnEdit = document.createElement("button");
+            btnEdit.classList.add(
+              "bg-yellow-500",
+              "text-white",
+              "p-2",
+              "rounded",
+              "hover:bg-yellow-600",
+              "mr-2"
+            );
+            btnEdit.textContent = "Editar";
+
+            btnEdit.addEventListener("click", () => {
+              // Rellenar el formulario de edición con los datos actuales
+              titleInput.value = data.todo.title;
+              completedInput.checked = data.todo.completed;
+
+              // Mostrar el formulario de edición
+              editingTaskId = data.todo.id;
+              submitButton.textContent = "Actualizar Tarea";
+              taskForm.classList.remove("hidden");
+            });
+
+            td5.appendChild(btnEdit);
+            td5.appendChild(btnDelete);
+
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            tr.appendChild(td4);
+            tr.appendChild(td5);
+
+            tbody.appendChild(tr);
+
+            // Limpiar el formulario
+            titleInput.value = "";
+            completedInput.checked = false;
+
+            // Ocultar el formulario
+            taskForm.classList.add("hidden");
+
+            alert("Tarea creada con éxito");
+          }
+        })
+        .catch((error) => {
+          console.error("Error al crear la tarea:", error);
+          alert("Error al crear la tarea");
+        });
+    }
+  });
+
+  // Función para cargar las tareas al cargar la página
+  const loadTodos = () => {
+    fetch("http://localhost:4000/todos", {
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.todos) {
+          data.todos.forEach((todo) => {
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-id", todo.id);
+
+            const td1 = document.createElement("td");
+            td1.classList.add("border", "px-4", "py-2");
+            td1.textContent = todo.id;
+
+            const td2 = document.createElement("td");
+            td2.classList.add("border", "px-4", "py-2");
+            td2.textContent = todo.title;
+
+            const td3 = document.createElement("td");
+            td3.classList.add("border", "px-4", "py-2");
+            td3.textContent = todo.completed ? "Sí" : "No";
+
+            const td4 = document.createElement("td");
+            td4.classList.add("border", "px-4", "py-2");
+            td4.textContent = todo.owner;
+
+            const td5 = document.createElement("td");
+            td5.classList.add("border", "px-4", "py-2");
+
+            // Botón de eliminar
+            const btnDelete = document.createElement("button");
+            btnDelete.classList.add(
+              "bg-red-500",
+              "text-white",
+              "p-2",
+              "rounded",
+              "hover:bg-red-600"
+            );
+            btnDelete.textContent = "Eliminar";
+
+            btnDelete.addEventListener("click", () => {
+              fetch(`http://localhost:4000/todos/${todo.id}`, {
+                method: "DELETE",
+                credentials: "include",
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.message === "Tarea eliminada con éxito") {
+                    tr.remove(); // Eliminar la fila de la tabla
+                    alert("Tarea eliminada con éxito");
+                  } else {
+                    alert("Error al eliminar la tarea");
+                  }
+                })
+                .catch((error) => {
+                  console.error("Error al eliminar la tarea:", error);
+                  alert("Error al eliminar la tarea");
+                });
+            });
+
+            // Botón de editar
+            const btnEdit = document.createElement("button");
+            btnEdit.classList.add(
+              "bg-yellow-500",
+              "text-white",
+              "p-2",
+              "rounded",
+              "hover:bg-yellow-600",
+              "mr-2"
+            );
+            btnEdit.textContent = "Editar";
+
+            btnEdit.addEventListener("click", () => {
+              // Rellenar el formulario de edición con los datos actuales
+              titleInput.value = todo.title;
+              completedInput.checked = todo.completed;
+
+              // Mostrar el formulario de edición
+              editingTaskId = todo.id;
+              submitButton.textContent = "Actualizar Tarea";
+              taskForm.classList.remove("hidden");
+            });
+
+            td5.appendChild(btnEdit);
+            td5.appendChild(btnDelete);
+
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            tr.appendChild(td4);
+            tr.appendChild(td5);
+
+            tbody.appendChild(tr);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error al cargar las tareas:", error);
+        alert("Error al cargar las tareas");
+      });
+  };
+
+  // Cargar las tareas al iniciar la página
+  loadTodos();
 
   return container;
 };
