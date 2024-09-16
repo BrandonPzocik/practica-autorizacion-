@@ -1,58 +1,89 @@
 import { database } from "../db/database.js";
 
 export const getAllTodosCtrl = (req, res) => {
-  const userId = req.user.id; // Obtener el ID del usuario autenticado
+  const userId = req.user.id; // obtener el id del usuario autenticado
 
-  // Filtrar las tareas que corresponden al usuario autenticado
+  //filtrar las tareas que corresponden al usuario autenticado
   const userTodos = database.todos.filter((todo) => todo.owner === userId);
 
-  // Enviar solo las tareas del usuario autenticado
   res.json({ todos: userTodos });
 };
 
-//ELIMINAR TAREAS
-export const deleteTodosCtrl = (req, res) => {
-  const { id } = req.params;
+//CREAR TAREAS
+export const createTodoCtrl = (req, res) => {
+  const userId = req.user.id; // Obtener el id del usuario autenticado
+  const { title, completed } = req.body; // Obtener los datos de la tarea del cuerpo de la solicitud
 
-  // Encontrar la tarea
-  const taskIndex = database.todos.findIndex((task) => task.id == id);
-  if (taskIndex === -1) {
-    return res.status(404).json({ message: "Tarea no encontrada" });
+  // Verificar que se recibieron todos los campos necesarios
+  if (!title || completed === undefined) {
+    return res.status(400).json({ message: "Faltan campos requeridos" });
   }
 
-  const task = database.todos[taskIndex];
+  // Crear una nueva tarea
+  const newTodo = {
+    id: database.todos.length + 1, // Asignar un nuevo ID
+    title,
+    completed,
+    owner: userId, // Asignar el ID del usuario autenticado
+  };
 
-  if (task.owner !== req.user.id) {
-    return res
-      .status(403)
-      .json({ message: "No tienes permiso para eliminar esta tarea" });
-  }
+  // Añadir la nueva tarea a la base de datos
+  database.todos.push(newTodo);
 
-  database.todos.splice(taskIndex, 1);
-
-  res.json({ message: "Tarea eliminada correctamente" });
+  res.status(201).json({ message: "Tarea creada con éxito", todo: newTodo });
 };
 
-export const updateTodosCtrl = (req, res) => {
-  const { id } = req.params;
-  const { title, completed } = req.body;
+//EDITAR TAREAS
+export const updateTodoCtrl = (req, res) => {
+  const userId = req.user.id; // Obtener el id del usuario autenticado
+  const { id } = req.params; // Obtener el ID de la tarea desde los parámetros de la solicitud
+  const { title, completed } = req.body; // Obtener los datos a actualizar del cuerpo de la solicitud
 
-  const task = database.todos.find((task) => task.id == id);
+  // Encontrar la tarea por ID
+  const todo = database.todos.find((todo) => todo.id === parseInt(id));
 
-  console.log(task);
-
-  if (!task) {
+  // Verificar si la tarea existe y si pertenece al usuario autenticado
+  if (!todo) {
     return res.status(404).json({ message: "Tarea no encontrada" });
   }
-
-  if (task.owner !== req.user.id) {
+  if (todo.owner !== userId) {
     return res
       .status(403)
       .json({ message: "No tienes permiso para editar esta tarea" });
   }
 
-  task.title = title || task.title;
-  task.completed = completed || task.completed;
+  // Actualizar los campos de la tarea
+  if (title !== undefined) todo.title = title;
+  if (completed !== undefined) todo.completed = completed;
 
-  res.json({ message: "Tarea actualizada correctamente", task });
+  res.json({ message: "Tarea actualizada con éxito", todo });
+};
+
+//ELIMINAR TAREAS
+export const deleteTodoCtrl = (req, res) => {
+  const userId = req.user.id; // Obtener el id del usuario autenticado
+  const { id } = req.params; // Obtener el ID de la tarea desde los parámetros de la solicitud
+
+  // Encontrar la tarea por ID
+  const todoIndex = database.todos.findIndex(
+    (todo) => todo.id === parseInt(id)
+  );
+
+  // Verificar si la tarea existe
+  if (todoIndex === -1) {
+    return res.status(404).json({ message: "Tarea no encontrada" });
+  }
+
+  // Verificar que la tarea pertenece al usuario autenticado
+  const todo = database.todos[todoIndex];
+  if (todo.owner !== userId) {
+    return res
+      .status(403)
+      .json({ message: "No tienes permiso para eliminar esta tarea" });
+  }
+
+  // Eliminar la tarea
+  database.todos.splice(todoIndex, 1);
+
+  res.json({ message: "Tarea eliminada con éxito" });
 };
